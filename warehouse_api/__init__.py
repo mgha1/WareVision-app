@@ -1,0 +1,1 @@
+"""Warehouse FastAPI backend package."""
