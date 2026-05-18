@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WareVision</title>
+  <link rel="stylesheet" href="/static/styles.css?v=20260419b">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script>
+    window.__WAREVISION_LOGIN_METRICS_FALLBACK__ = {
+      total_slots: 200,
+      fast_pick_utilization_pct: 98.3,
+      queue_savings_m: 11383.4,
+      zones_online: 4
+    };
+  </script>
+</head>
+<body>
+  <div class="app-backdrop"></div>
+
+  <section id="login-shell" class="auth-shell">
+    <div class="auth-panel">
+      <section class="auth-copy">
+        <div class="auth-logo-row">
+          <div class="auth-logo-mark" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="auth-logo-copy">
+            <p class="auth-brand">WareVision</p>
+          </div>
+        </div>
+
+        <div class="auth-copy-middle">
+          <h1>Slot smarter.<br><span style="color: #2ec4a6;">Move faster.</span></h1>
+          <p class="auth-description">
+            Real-time floor intelligence with AI-driven slotting recommendations, live asset tracking, and demand forecasting
+            &mdash; all in one control room.
+          </p>
+          <div class="auth-badges">
+            <span>Live floor map</span>
+            <span>Slotting queue</span>
+            <span>Inventory movement</span>
+            <span>ML forecasting</span>
+          </div>
+        </div>
+
+        <div class="auth-stats" aria-label="Live warehouse metrics">
+          <article class="auth-stat">
+            <p id="login-stat-total-slots" class="auth-stat-value">200</p>
+            <p class="auth-stat-label">Slots tracked</p>
+          </article>
+          <article class="auth-stat">
+            <p id="login-stat-fast-pick" class="auth-stat-value">98.3%</p>
+            <p class="auth-stat-label">Fast-pick util.</p>
+          </article>
+          <article class="auth-stat">
+            <p id="login-stat-queue-savings" class="auth-stat-value">11.4km</p>
+            <p class="auth-stat-label">Distance saved</p>
+          </article>
+        </div>
+      </section>
+
+      <form id="login-form" class="auth-card">
+        <div class="auth-card-copy">
+          <p class="eyebrow">Operator login</p>
+          <h2>Enter control room</h2>
+          <p class="auth-form-description">
+            Sign in to access your live warehouse dashboard.
+          </p>
+        </div>
+
+        <label class="field">
+          <span>Username</span>
+          <input id="login-username" name="username" type="text" autocomplete="username" placeholder="" required>
+        </label>
+
+        <label class="field">
+          <span>Password</span>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+        </label>
+
+        <button id="login-button" class="primary-button auth-submit" type="submit">
+          <span>Sign in</span>
+          <span class="auth-submit-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none" role="presentation" focusable="false">
+              <path d="M4.5 10H15.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+              <path d="M10.5 5L15.5 10L10.5 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+        </button>
+        <p id="login-error" class="form-message hidden" role="alert"></p>
+
+        <div class="auth-live-status" aria-live="polite">
+          <span class="auth-live-dot" aria-hidden="true"></span>
+          <span id="login-live-status">Live warehouse feed active &#183; 4 zones online</span>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <main id="app-shell" class="app-shell hidden">
+    <header class="topbar">
+      <div class="topbar-main">
+        <div class="topbar-copy">
+          <h1>WareVision</h1>
+          <p class="topbar-subtitle">
+            Live warehouse intelligence &mdash; floor, inventory &amp; demand.
+          </p>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="operator-chip">
+            <span class="operator-label">Signed in as</span>
+            <strong id="operator-name">-</strong>
+          </div>
+          <button id="logout-button" class="secondary-button" type="button">Log Out</button>
+        </div>
+      </div>
+
+    </header>
+
+    <nav class="view-nav" aria-label="Workspace views">
+      <button
+        id="nav-analytics"
+        class="view-tab is-active"
+        type="button"
+        aria-pressed="true"
+        aria-controls="view-analytics"
+        onclick="window.__warevisionSwitchView && window.__warevisionSwitchView('analytics')"
+      >
+        <span class="view-tab-icon">📊</span>
+        <span>Warehouse Analytics</span>
+      </button>
+      <button
+        id="nav-upload"
+        class="view-tab"
+        type="button"
+        aria-pressed="false"
+        aria-controls="view-inventory-upload"
+        onclick="window.__warevisionSwitchView && window.__warevisionSwitchView('upload')"
+      >
+        <span class="view-tab-icon">📦</span>
+        <span>Inventory Upload</span>
+      </button>
+      <button
+        id="nav-map"
+        class="view-tab is-active"
+        type="button"
+        aria-pressed="true"
+        aria-controls="view-live-map"
+        onclick="window.__warevisionSwitchView && window.__warevisionSwitchView('map')"
+      >
+        <span class="view-tab-icon">🗺</span>
+        <span>Live Warehouse Map</span>
+      </button>
+      <button
+        id="nav-forecast"
+        class="view-tab"
+        type="button"
+        aria-pressed="false"
+        aria-controls="view-forecast"
+        onclick="window.__warevisionSwitchView && window.__warevisionSwitchView('forecast')"
+      >
+        <span class="view-tab-icon">📈</span>
+        <span>Demand Forecasting</span>
+      </button>
+    </nav>
+
+    <section id="view-analytics" class="view-panel is-active">
+      <div class="analytics-shell">
+        <section class="analytics-hero">
+          <div>
+            <p class="analytics-subtitle">
+              Live KPIs, zone utilization, and optimization signals.
+            </p>
+          </div>
+          <div id="analytics-last-updated" class="refresh-chip">Waiting for first refresh</div>
+        </section>
+
+        <section class="analytics-summary-grid" aria-label="Warehouse analytics summary">
+          <article class="analytics-summary-card">
+            <p class="metric-label">Active SKUs</p>
+            <p id="analytics-active-skus" class="metric-value">-</p>
+            <p class="metric-subtext">Distinct SKUs currently on hand</p>
+          </article>
+          <article class="analytics-summary-card">
+            <p class="metric-label">Inventory Units</p>
+            <p id="analytics-total-units" class="metric-value">-</p>
+            <p class="metric-subtext">Total quantity across inventory slots</p>
+          </article>
+          <article class="analytics-summary-card">
+            <p class="metric-label">Occupancy Rate</p>
+            <p id="analytics-occupancy-rate" class="metric-value">-</p>
+            <p class="metric-subtext">Filled slots across the floor</p>
+          </article>
+          <article class="analytics-summary-card">
+            <p class="metric-label">Active Assets</p>
+            <p id="analytics-active-assets" class="metric-value">-</p>
+            <p class="metric-subtext">Live tracked forklifts and workers</p>
+          </article>
+          <article class="analytics-summary-card">
+            <p class="metric-label">Pending Queue</p>
+            <p id="analytics-pending-queue" class="metric-value">-</p>
+            <p class="metric-subtext">Open slotting recommendations</p>
+          </article>
+          <article class="analytics-summary-card">
+            <p class="metric-label">Queue Savings</p>
+            <p id="analytics-queue-savings" class="metric-value">-</p>
+            <p class="metric-subtext">Estimated meters saved if accepted</p>
+          </article>
+          <article class="analytics-summary-card">
+            <p class="metric-label">Today's Inbound</p>
+            <p id="analytics-inbound-units" class="metric-value">-</p>
+            <p class="metric-subtext">Units received today</p>
+          </article>
+          <article class="analytics-summary-card">
+            <p class="metric-label">Today's Revenue</p>
+            <p id="analytics-today-revenue" class="metric-value">-</p>
+            <p class="metric-subtext">Recognized revenue from daily sales</p>
+          </article>
+        </section>
+
+        <div class="analytics-grid">
+          <section class="analytics-card">
+            <div class="analytics-card-header">
+              <div>
+                <p class="eyebrow">Zone Utilization</p>
+                <h3>Capacity by warehouse zone</h3>
+              </div>
+            </div>
+            <div id="analytics-zone-utilization" class="analytics-stack"></div>
+          </section>
+
+          <section class="analytics-card">
+            <div class="analytics-card-header">
+              <div>
+                <p class="eyebrow">Flow Snapshot</p>
+                <h3>Assets, queue status, and inbound rhythm</h3>
+              </div>
+            </div>
+            <div class="analytics-mini-grid">
+              <div class="analytics-mini-panel">
+                <h4>Asset Status</h4>
+                <div id="analytics-asset-status" class="analytics-chip-list"></div>
+              </div>
+              <div class="analytics-mini-panel">
+                <h4>Recommendation Status</h4>
+                <div id="analytics-recommendation-status" class="analytics-chip-list"></div>
+              </div>
+              <div class="analytics-mini-panel analytics-mini-panel-wide">
+                <h4>Inbound by Hour</h4>
+                <div id="analytics-inbound-activity" class="analytics-bar-list"></div>
+              </div>
+              <div class="analytics-mini-panel analytics-mini-panel-wide">
+                <h4>Sales Trend</h4>
+                <div id="analytics-sales-trend" class="analytics-bar-list"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="analytics-card">
+            <div class="analytics-card-header">
+              <div>
+                <p class="eyebrow">High Velocity SKUs</p>
+                <h3>Top pick activity in the last 30 days</h3>
+              </div>
+            </div>
+            <div class="table-shell">
+              <table class="data-table analytics-table">
+                <thead>
+                  <tr>
+                    <th>SKU ID</th>
+                    <th>SKU Name</th>
+                    <th>Picks</th>
+                    <th>Units On Hand</th>
+                    <th>Current Slot</th>
+                    <th>Zone</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-top-skus">
+                  <tr><td colspan="6" class="table-empty">Loading analytics...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="analytics-card">
+            <div class="analytics-card-header">
+              <div>
+                <p class="eyebrow">Category Mix</p>
+                <h3>Inventory, picks, and 7-day revenue by category</h3>
+              </div>
+            </div>
+            <div class="table-shell">
+              <table class="data-table analytics-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>SKUs</th>
+                    <th>Units</th>
+                    <th>Picks 30d</th>
+                    <th>Revenue 7d</th>
+                  </tr>
+                </thead>
+                <tbody id="analytics-category-mix">
+                  <tr><td colspan="5" class="table-empty">Loading analytics...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-live-map" class="view-panel hidden">
+      <section class="metric-strip" aria-label="Warehouse summary metrics">
+        <article class="metric-card accent-card">
+          <p class="metric-label">Slot Occupancy</p>
+          <p id="metric-occupancy" class="metric-value">-</p>
+          <p class="metric-subtext">Across the visible floor map</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">Pending Queue</p>
+          <p id="metric-queue" class="metric-value">-</p>
+          <p class="metric-subtext">Recommendations awaiting action</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">Active Assets</p>
+          <p id="metric-assets" class="metric-value">-</p>
+          <p class="metric-subtext">Live forklifts shown on the map</p>
+        </article>
+        <article class="metric-card">
+          <p class="metric-label">Last Refresh</p>
+          <p id="metric-updated" class="metric-value">-</p>
+          <p class="metric-subtext">Floor and asset data heartbeat</p>
+        </article>
+      </section>
+
+      <div class="workspace">
+        <section class="main-column">
+          <section class="stage">
+            <header class="stage-header">
+              <div>
+                <p class="eyebrow">Visual Floor Map</p>
+                <h2>Warehouse live view</h2>
+                <p class="stage-intro">
+                  Live slot occupancy, congestion signals, and moving assets on one continuously updated floor canvas.
+                </p>
+              </div>
+              <div class="stage-actions">
+                <button id="heatmap-toggle" class="heatmap-toggle" type="button" aria-pressed="false">
+                  Heatmap Off
+                </button>
+                <div class="legend" aria-label="Slot status legend">
+                  <span><i class="dot empty"></i> Empty</span>
+                  <span><i class="dot occupied"></i> Occupied</span>
+                  <span><i class="dot congested"></i> Over-congested</span>
+                  <span><i class="dot asset"></i> Forklift</span>
+                </div>
+              </div>
+            </header>
+
+            <div class="map-toolbar">
+              <div class="map-chip">
+                <span class="map-chip-label">Zones</span>
+                <strong id="map-zone-count">-</strong>
+              </div>
+              <div class="map-chip">
+                <span class="map-chip-label">Visible Slots</span>
+                <strong id="map-slot-count">-</strong>
+              </div>
+              <div class="map-chip">
+                <span class="map-chip-label">Busy Slots</span>
+                <strong id="map-busy-count">-</strong>
+              </div>
+              <div class="map-chip map-chip-highlight">
+                <span class="map-chip-label">Queue Savings</span>
+                <strong id="map-savings">-</strong>
+              </div>
+            </div>
+
+            <div class="canvas-shell">
+              <div class="canvas-glow canvas-glow-left"></div>
+              <div class="canvas-glow canvas-glow-right"></div>
+              <div class="live-feed-strip">
+                <span class="live-feed-dot"></span>
+                <div class="live-feed-marquee">
+                  <span id="live-feed-text" class="live-feed-track">Synchronizing floor state</span>
+                </div>
+              </div>
+              <div class="map-frame">
+                <div id="warehouse-map" class="warehouse-map" aria-label="Warehouse floor map"></div>
+              </div>
+              <div id="tooltip" class="tooltip hidden"></div>
+              <div id="heatmap-legend" class="heatmap-legend hidden">
+                <p class="heatmap-legend-title">Density</p>
+                <span><i class="swatch heat-low"></i> Low</span>
+                <span><i class="swatch heat-medium"></i> Medium</span>
+                <span><i class="swatch heat-high"></i> High</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="detail-grid">
+            <article class="info-card">
+              <p class="eyebrow">Selection</p>
+              <h3 id="panel-title">No slot selected</h3>
+              <p id="panel-subtitle" class="panel-subtle">
+                Click an occupied slot to inspect inventory and recommendations.
+              </p>
+            </article>
+
+            <article class="info-card">
+              <h3>Inventory</h3>
+              <dl class="facts">
+                <div><dt>Slot</dt><dd id="fact-slot">-</dd></div>
+                <div><dt>SKU</dt><dd id="fact-sku">-</dd></div>
+                <div><dt>Quantity</dt><dd id="fact-qty">-</dd></div>
+                <div><dt>Pick Count</dt><dd id="fact-picks">-</dd></div>
+              </dl>
+            </article>
+
+            <article class="info-card wide-card">
+              <h3>Move Recommendation</h3>
+              <div id="recommendation-card" class="recommendation empty-state">
+                No recommendation for the selected slot.
+              </div>
+            </article>
+
+            <article class="info-card">
+              <h3>System</h3>
+              <p id="status-text" class="panel-subtle">Waiting for live data...</p>
+            </article>
+          </section>
+        </section>
+
+        <aside class="queue-rail">
+          <div class="queue-rail-inner">
+            <div id="recommendations-root"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-forecast" class="view-panel hidden">
+      <div class="forecast-shell">
+        <section class="forecast-hero">
+          <div class="forecast-hero-copy">
+            <p class="eyebrow">INVENTORY INTELLIGENCE</p>
+            <h2>Demand Forecasting &amp; Replenishment Control</h2>
+            <p class="forecast-subtitle">
+              Predictive stock analytics powered by historical movement patterns and sales velocity. Identify replenishment needs before stockouts occur.
+            </p>
+          </div>
+
+          <div class="forecast-toolbar">
+            <div class="forecast-control-group">
+              <span class="forecast-control-label">Horizon</span>
+              <div id="forecast-horizon-toggle" class="segmented-toggle" role="tablist" aria-label="Forecast horizon">
+                <button class="segmented-toggle-button" type="button" data-horizon="7">7 Days</button>
+                <button class="segmented-toggle-button is-active" type="button" data-horizon="14">14 Days</button>
+                <button class="segmented-toggle-button" type="button" data-horizon="30">30 Days</button>
+              </div>
+            </div>
+
+            <div class="forecast-toolbar-search">
+              <label class="field field-inline">
+                <span>SKU Search</span>
+                <input id="forecast-search" type="search" placeholder="Filter by SKU or name">
+              </label>
+            </div>
+
+            <div id="forecast-status-filters" class="forecast-status-filters" aria-label="Forecast status filters">
+              <button class="forecast-filter-badge status-stockout" type="button" data-status="stockout_risk">
+                <span>🔴</span>
+                <strong id="forecast-count-stockout">0</strong>
+                <span>Stockout Risk</span>
+              </button>
+              <button class="forecast-filter-badge status-reorder" type="button" data-status="reorder_now">
+                <span>🟡</span>
+                <strong id="forecast-count-reorder">2</strong>
+                <span>Reorder</span>
+              </button>
+              <button class="forecast-filter-badge status-healthy" type="button" data-status="healthy">
+                <span>🟢</span>
+                <strong id="forecast-count-healthy">136</strong>
+                <span>Healthy</span>
+              </button>
+              <button class="forecast-filter-badge status-slow" type="button" data-status="slow_moving">
+                <span>⚪</span>
+                <strong id="forecast-count-slow">0</strong>
+                <span>Slow Moving</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="forecast-card forecast-chart-card">
+          <div class="forecast-card-header forecast-card-header-inline">
+            <div>
+              <p class="eyebrow">Forecast Curve</p>
+              <h3>Historical demand vs predicted demand window</h3>
+            </div>
+            <label class="field field-inline forecast-sku-selector">
+              <span>SKU</span>
+              <select id="forecast-sku-select"></select>
+            </label>
+          </div>
+
+          <div class="forecast-chart-shell">
+            <canvas id="forecast-chart" aria-label="Demand forecast chart"></canvas>
+          </div>
+          <div class="forecast-source-legend">
+            <span>● Actual (DAILY_SALES / PICK_HISTORY)</span>
+            <span>○ Synthetic baseline</span>
+          </div>
+        </section>
+
+        <div class="forecast-grid">
+          <section class="forecast-card forecast-table-card">
+            <div class="forecast-card-header forecast-card-header-inline">
+              <div>
+                <p class="eyebrow">All SKU Forecasts</p>
+                <h3>Risk-ranked demand outlook</h3>
+              </div>
+              <div id="forecast-table-meta" class="refresh-chip">Waiting for first refresh</div>
+            </div>
+
+            <div class="table-shell">
+              <table class="data-table forecast-table">
+                <thead>
+                  <tr>
+                    <th><button class="table-sort-button" type="button" data-sort-key="sku_id">SKU ID</button></th>
+                    <th><button class="table-sort-button" type="button" data-sort-key="sku_name">Name</button></th>
+                    <th><button class="table-sort-button" type="button" data-sort-key="avg_daily_demand">Avg Daily Demand</button></th>
+                    <th><button class="table-sort-button" type="button" data-sort-key="forecast_total">Forecast</button></th>
+                    <th><button class="table-sort-button" type="button" data-sort-key="current_stock">Stock</button></th>
+                    <th><button class="table-sort-button" type="button" data-sort-key="days_until_stockout">Days to Stockout</button></th>
+                    <th><button class="table-sort-button" type="button" data-sort-key="trend">Trend</button></th>
+                    <th><button class="table-sort-button" type="button" data-sort-key="status">Status</button></th>
+                  </tr>
+                </thead>
+                <tbody id="forecast-table-body">
+                  <tr><td colspan="8" class="table-empty">Loading forecasts...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="forecast-pagination">
+              <button id="forecast-page-prev" class="secondary-button forecast-page-button" type="button">Previous</button>
+              <span id="forecast-page-info" class="forecast-page-info">Page 1</span>
+              <button id="forecast-page-next" class="secondary-button forecast-page-button" type="button">Next</button>
+            </div>
+          </section>
+
+          <aside class="forecast-card forecast-queue-card">
+            <div class="forecast-card-header">
+              <div>
+                <p class="eyebrow">Reorder Queue</p>
+                <h3>SKUs needing action</h3>
+                <p class="forecast-card-subtitle">Place supplier orders for SKUs that need replenishment.</p>
+              </div>
+            </div>
+            <div id="forecast-reorder-queue" class="forecast-queue-list">
+              <div class="forecast-empty-state">Loading reorder queue...</div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-inventory-upload" class="view-panel hidden">
+      <div class="upload-grid">
+        <aside class="upload-column upload-column-fixed">
+          <section class="upload-card upload-form-card">
+            <div class="upload-card-header">
+              <div>
+                <p class="eyebrow">Inventory Upload</p>
+                <h2>New Stock Arrival</h2>
+                <p class="upload-card-subtitle">
+                  Enter incoming SKU details to get slot recommendations
+                </p>
+              </div>
+            </div>
+
+            <form id="inventory-upload-form" class="upload-form">
+              <label class="field">
+                <span>SKU ID *</span>
+                <input id="upload-sku-id" type="text" placeholder="e.g. SKU-086" required>
+              </label>
+              <div id="upload-sku-status" class="status-inline hidden" aria-live="polite"></div>
+
+              <label class="field">
+                <span>SKU Name</span>
+                <input id="upload-sku-name" type="text" placeholder="Product name">
+              </label>
+
+              <label class="field">
+                <span>Category</span>
+                <input id="upload-category" type="text" placeholder="e.g. Electronics, FMCG">
+              </label>
+
+              <label class="field">
+                <span>Quantity *</span>
+                <input id="upload-quantity" type="number" min="1" step="1" required>
+              </label>
+
+              <label class="field">
+                <span>Unit Weight (kg)</span>
+                <input id="upload-unit-weight" type="number" min="0" step="0.1" placeholder="0.0">
+              </label>
+
+              <label class="field">
+                <span>Supplier</span>
+                <input id="upload-supplier" type="text" placeholder="Supplier name">
+              </label>
+
+              <label class="field field-textarea">
+                <span>Notes</span>
+                <textarea id="upload-notes" rows="3" placeholder="Receiving notes, priority, handling instructions"></textarea>
+              </label>
+
+              <p id="upload-form-message" class="form-message hidden" role="alert"></p>
+              <button id="upload-recommend-button" class="primary-button upload-submit" type="submit">
+                <span id="upload-recommend-button-text">Get Slot Recommendation</span>
+              </button>
+            </form>
+          </section>
+        </aside>
+
+        <section class="upload-column upload-column-main">
+          <section class="upload-card recommendation-panel">
+            <div class="upload-card-header">
+              <div>
+                <p class="eyebrow">Slot Recommendation Panel</p>
+                <h2>Recommended Slot</h2>
+                <p class="upload-card-subtitle">
+                  Review distance, occupancy, and fit before assigning inbound stock to the floor.
+                </p>
+              </div>
+            </div>
+
+            <div id="upload-recommendation-empty" class="upload-empty-state">
+              Submit inbound stock details to generate the best open slot in the warehouse.
+            </div>
+
+            <div id="upload-recommendation-result" class="upload-recommendation-result hidden">
+              <div class="recommended-slot-header">
+                <div>
+                  <p class="recommended-slot-label">Recommended Slot</p>
+                  <h3 id="recommended-slot-id" class="recommended-slot-id">-</h3>
+                </div>
+                <div class="recommended-zone">
+                  <span id="recommended-zone-name">-</span>
+                </div>
+              </div>
+
+              <div class="reason-grid">
+                <article class="reason-item">
+                  <span class="reason-label">Distance to dispatch</span>
+                  <strong id="reason-distance">-</strong>
+                </article>
+                <article class="reason-item">
+                  <span class="reason-label">Zone type</span>
+                  <strong id="reason-zone-type">-</strong>
+                </article>
+                <article class="reason-item">
+                  <span class="reason-label">Current zone occupancy</span>
+                  <strong id="reason-occupancy">-</strong>
+                </article>
+                <article class="reason-item">
+                  <span class="reason-label">Estimated daily walk saved</span>
+                  <strong id="reason-saving">-</strong>
+                </article>
+              </div>
+
+              <div class="mini-map-card">
+                <div class="mini-map-header">
+                  <span class="mini-map-title">Mini map preview</span>
+                  <span id="mini-map-caption" class="mini-map-caption">Awaiting floor data</span>
+                </div>
+                <div id="mini-map-preview" class="mini-map-preview" aria-label="Recommended slot mini map"></div>
+              </div>
+
+              <div class="recommendation-actions">
+                <button id="confirm-assignment-button" class="primary-button recommendation-action" type="button">
+                  ✓ Confirm &amp; Assign
+                </button>
+                <button id="different-slot-button" class="secondary-button recommendation-action" type="button">
+                  ↺ Get Different Slot
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="upload-card inbound-log-panel">
+            <div class="upload-card-header upload-card-header-inline">
+              <div>
+                <p class="eyebrow">Inbound Activity</p>
+                <h2>Today's Inbound Log</h2>
+              </div>
+              <div id="inbound-log-refresh" class="refresh-chip">Waiting for first sync</div>
+            </div>
+
+            <div class="table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>SKU ID</th>
+                    <th>SKU Name</th>
+                    <th>Qty</th>
+                    <th>Assigned Slot</th>
+                    <th>Zone</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-uploads-body">
+                  <tr>
+                    <td colspan="7" class="table-empty">No inbound uploads recorded yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var navAnalytics = document.getElementById("nav-analytics");
+      var navUpload = document.getElementById("nav-upload");
+      var navMap = document.getElementById("nav-map");
+      var navForecast = document.getElementById("nav-forecast");
+      var analyticsView = document.getElementById("view-analytics");
+      var uploadView = document.getElementById("view-inventory-upload");
+      var mapView = document.getElementById("view-live-map");
+      var forecastView = document.getElementById("view-forecast");
+
+      function switchView(viewName) {
+        var showAnalytics = viewName === "analytics";
+        var showUpload = viewName === "upload";
+        var showForecast = viewName === "forecast";
+
+        if (!navAnalytics || !navUpload || !navMap || !navForecast || !analyticsView || !uploadView || !mapView || !forecastView) {
+          return;
+        }
+
+        analyticsView.classList.toggle("hidden", !showAnalytics);
+        analyticsView.classList.toggle("is-active", showAnalytics);
+        uploadView.classList.toggle("hidden", !showUpload);
+        uploadView.classList.toggle("is-active", showUpload);
+        forecastView.classList.toggle("hidden", !showForecast);
+        forecastView.classList.toggle("is-active", showForecast);
+        mapView.classList.toggle("hidden", showAnalytics || showUpload || showForecast);
+        mapView.classList.toggle("is-active", !showAnalytics && !showUpload && !showForecast);
+        navAnalytics.classList.toggle("is-active", showAnalytics);
+        navUpload.classList.toggle("is-active", showUpload);
+        navForecast.classList.toggle("is-active", showForecast);
+        navMap.classList.toggle("is-active", !showAnalytics && !showUpload && !showForecast);
+        navAnalytics.setAttribute("aria-pressed", showAnalytics ? "true" : "false");
+        navUpload.setAttribute("aria-pressed", showUpload ? "true" : "false");
+        navForecast.setAttribute("aria-pressed", showForecast ? "true" : "false");
+        navMap.setAttribute("aria-pressed", !showAnalytics && !showUpload && !showForecast ? "true" : "false");
+      }
+
+      window.__warevisionSwitchView = function (viewName) {
+        var targetPanel;
+        switchView(viewName);
+        if (window.WarehouseShell && window.WarehouseShell.setActiveView) {
+          window.WarehouseShell.setActiveView(viewName);
+        }
+        targetPanel = document.getElementById(
+          viewName === "analytics"
+            ? "view-analytics"
+            : (viewName === "upload"
+              ? "view-inventory-upload"
+              : (viewName === "forecast" ? "view-forecast" : "view-live-map"))
+        );
+        if (targetPanel && targetPanel.scrollIntoView) {
+          window.requestAnimationFrame(function () {
+            targetPanel.scrollIntoView({ behavior: "auto", block: "start" });
+          });
+        }
+      };
+
+      navAnalytics.addEventListener("click", function () {
+        window.__warevisionSwitchView("analytics");
+      });
+      navUpload.addEventListener("click", function () {
+        window.__warevisionSwitchView("upload");
+      });
+      navMap.addEventListener("click", function () {
+        window.__warevisionSwitchView("map");
+      });
+      navForecast.addEventListener("click", function () {
+        window.__warevisionSwitchView("forecast");
+      });
+      switchView("analytics");
+    }());
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" defer></script>
+  <script src="/static/app.js?v=20260419b" defer></script>
+  <script src="/static/recommendations.js?v=20260419b" defer></script>
+  <script src="/static/upload.js?v=20260419b" defer></script>
+  <script src="/static/analytics.js?v=20260419b" defer></script>
+  <script src="/static/forecast.js?v=20260419c" defer></script>
+  <div id="toast-root" class="toast-root" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
